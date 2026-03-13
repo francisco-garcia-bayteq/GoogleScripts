@@ -1,27 +1,48 @@
 ﻿const Documents = (function () {
+  const CERTIFICATE_TEMPLATE = [
+    'ACTA DE CALIFICACIONES',
+    '-----------------------',
+    '',
+    'Nombre: {{name}}',
+    'Curso: {{course}}',
+    'Promedio ponderado: {{average}}',
+    'Estado: {{status}}',
+    '',
+    'Esta acta certifica el desempeño académico correspondiente.',
+    '',
+    'Emitido el {{issuedOn}}',
+  ].join('\n');
+
   function createCertificates(records, config) {
+    const folderId = config.certificateFolderId;
+    const folder = folderId ? DriveApp.getFolderById(folderId) : null;
+    const issuedOn = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd MMMM yyyy');
+
     return records.map((record) => {
-      const docName = record.name + ' - Grade Certificate';
+      const docName = Acta - ;
       const doc = DocumentApp.create(docName);
       const body = doc.getBody();
-      body.appendParagraph('Academic Performance Certificate').setHeading(DocumentApp.ParagraphHeading.HEADING1);
-      body.appendParagraph('Student: ' + record.name);
-      body.appendParagraph('Student ID: ' + record.id_student);
-      body.appendParagraph('Course: ' + record.course);
-      body.appendParagraph('Grade 1: ' + record.grade1);
-      body.appendParagraph('Grade 2: ' + record.grade2);
-      body.appendParagraph('Grade 3: ' + record.grade3);
-      body.appendParagraph('');
-      body.appendParagraph('Final Grade: ' + record.finalGrade);
-      body.appendParagraph('Status: ' + record.status);
-      body.appendParagraph('Approved if ' + record.approvalThreshold + ' or higher.');
-      body.appendParagraph('');
-      body.appendParagraph('Issued on ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy') + '.');
+      body.setText(
+        Utils.renderTemplate(CERTIFICATE_TEMPLATE, {
+          name: record.name,
+          course: record.course,
+          average: record.average != null ? record.average : record.finalGrade,
+          status: record.status,
+          issuedOn,
+        })
+      );
       doc.saveAndClose();
 
       const file = DriveApp.getFileById(doc.getId());
-      if (config.certificateFolderId) {
-        Utils.moveFileToFolder(file, config.certificateFolderId);
+      if (folder) {
+        folder.addFile(file);
+        const parents = file.getParents();
+        while (parents.hasNext()) {
+          const parent = parents.next();
+          if (parent.getId() !== folder.getId()) {
+            parent.removeFile(file);
+          }
+        }
       }
 
       return Object.assign({}, record, {
