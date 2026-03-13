@@ -21,7 +21,7 @@
 
   batches.forEach((batch) => Importer.moveToProcessed(batch.file, config.processedFolderId));
 
-  Logger.log(Processed  grade records with  validation issues.);
+  Logger.log('Processed ' + calculatedRecords.length + ' grade records with ' + validationResult.errors.length + ' validation issues.');
 }
 
 function manualRun() {

@@ -81,7 +81,7 @@
 
   function createTimestampedSpreadsheet(folderId) {
     const today = formatDateISO(new Date());
-    const spreadsheet = SpreadsheetApp.create(Academic Grade Report );
+    const spreadsheet = SpreadsheetApp.create('Academic Grade Report ' + today);
     if (folderId) {
       const file = DriveApp.getFileById(spreadsheet.getId());
       moveFileToFolder(file, folderId);
